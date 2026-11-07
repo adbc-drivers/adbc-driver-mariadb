@@ -105,7 +105,7 @@ type mariaDBTypeConverter struct {
 
 func makeTypeConverter(zeroDatetimeBehavior zeroDatetimeBehavior) sqlwrapper.TypeConverter {
 	return &mariaDBTypeConverter{
-		DefaultTypeConverter: sqlwrapper.DefaultTypeConverter{VendorName: "MariaDB"},
+		VendorName:           "MariaDB",
 		zeroDatetimeBehavior: zeroDatetimeBehavior,
 	}
 }
