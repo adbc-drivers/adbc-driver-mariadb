@@ -29,11 +29,11 @@ class MariaDBQuirks(model.DriverQuirks):
     short_version = "12.2"
     features = model.DriverFeatures(
         connection_get_table_schema=True,
-        connection_transactions=False,
+        connection_transactions=True,
         get_objects=True,
-        get_objects_constraints_foreign=False,
-        get_objects_constraints_primary=False,
-        get_objects_constraints_unique=False,
+        get_objects_constraints_foreign=True,
+        get_objects_constraints_primary=True,
+        get_objects_constraints_unique=True,
         statement_bind=True,
         statement_bulk_ingest=True,
         statement_bulk_ingest_catalog=False,
@@ -47,7 +47,7 @@ class MariaDBQuirks(model.DriverQuirks):
         quirk_bulk_ingest_temporary_shares_namespace=True,
         current_catalog="db",  # MariaDB treats databases as catalogs (also JDBC behavior)
         current_schema="",  # MariaDB has no schema below a database/catalog
-        supported_xdbc_fields=[],
+        supported_xdbc_fields=["xdbc_nullable", "xdbc_is_nullable"],
     )
     setup = model.DriverSetup(
         database={
@@ -68,6 +68,17 @@ class MariaDBQuirks(model.DriverQuirks):
 
     def bind_parameter(self, index: int) -> str:
         return "?"
+
+    @property
+    def sample_ddl_constraints(self) -> list[str]:
+        return [
+            "CREATE TABLE constraint_primary (a INT, b VARCHAR(32), PRIMARY KEY (a))",
+            "CREATE TABLE constraint_primary_multi (a INT, b VARCHAR(32), PRIMARY KEY (b, a))",
+            "CREATE TABLE constraint_primary_multi2 (a VARCHAR(32), b INT, PRIMARY KEY (a, b))",
+            "CREATE TABLE constraint_unique (a INT, b INT, c INT, UNIQUE (a), UNIQUE (c, b))",
+            "CREATE TABLE constraint_foreign (a INT, b INT, FOREIGN KEY (b) REFERENCES constraint_primary (a))",
+            "CREATE TABLE constraint_foreign_multi (a INT, b INT, c VARCHAR(32), FOREIGN KEY (c, b) REFERENCES constraint_primary_multi2 (a, b))",
+        ]
 
     def is_table_not_found(self, table_name: str, error: Exception) -> bool:
         # Check if the error indicates a table not found condition
