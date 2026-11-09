@@ -135,7 +135,7 @@ func (f *MariaDBDBFactory) BuildMariaDBDSN(opts map[string]string) (string, erro
 func (f *MariaDBDBFactory) parseToMariaDBDSN(mariadbURI, username, password string) (string, error) {
 	u, err := url.Parse(mariadbURI)
 	if err != nil {
-		return "", fmt.Errorf("invalid MariaDB URI format: %v", err)
+		return "", fmt.Errorf("invalid MariaDB URI format")
 	}
 
 	cfg := mariadb.NewConfig()
@@ -173,7 +173,7 @@ func (f *MariaDBDBFactory) parseToMariaDBDSN(mariadbURI, username, password stri
 	case "":
 		// Case 2: Empty host is invalid - hostname must be explicit
 		// Use parentheses syntax for sockets: mariadb://user@(/path/to/socket)/db
-		return "", fmt.Errorf("missing hostname in URI: %s. Use explicit hostname or socket syntax: mariadb://user@(socketpath)/db", mariadbURI)
+		return "", fmt.Errorf("missing hostname in URI. Use explicit hostname or socket syntax: mariadb://user@(socketpath)/db")
 
 	default:
 		// Case 3: Regular TCP connection with a hostname

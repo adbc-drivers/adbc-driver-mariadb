@@ -1138,6 +1138,30 @@ func TestMariaDBIntegrationSuite(t *testing.T) {
 	suite.Run(t, new(MariaDBTestSuite))
 }
 
+func TestInvalidURIDoesNotExposeSecrets(t *testing.T) {
+	const password = "uri-password-sentinel"
+	const token = "uri-token-sentinel"
+	for _, tc := range []struct{ name, uri, diagnostic string }{
+		{"escape", "mariadb://user:" + password + "@localhost/db%zz?token=" + token, "invalid MariaDB URI format"},
+		{"port", "mariadb://user:" + password + "@localhost:invalid/db?token=" + token, "invalid MariaDB URI format"},
+		{"missing userinfo separator and host", "mariadb://user:" + password + "/db?token=" + token, "invalid MariaDB URI format"},
+		{"hostname", "mariadb://user:" + password + "@/db?token=" + token, "missing hostname in URI"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			drv := mariadb.NewDriver(memory.DefaultAllocator)
+			db, err := drv.NewDatabaseWithContext(context.Background(), map[string]string{adbc.OptionKeyURI: tc.uri})
+			if db != nil {
+				defer func() { require.NoError(t, db.Close(context.Background())) }()
+			}
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.diagnostic)
+			assert.NotContains(t, err.Error(), password)
+			assert.NotContains(t, err.Error(), token)
+			assert.NotContains(t, err.Error(), tc.uri)
+		})
+	}
+}
+
 // TestURIParsing tests the parseToMariaDBDSN function with various URI formats
 func TestURIParsing(t *testing.T) {
 	factory := mariadb.NewMariaDBDBFactory()
