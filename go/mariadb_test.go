@@ -1142,9 +1142,9 @@ func TestInvalidURIDoesNotExposeSecrets(t *testing.T) {
 	const password = "uri-password-sentinel"
 	const token = "uri-token-sentinel"
 	for _, tc := range []struct{ name, uri, diagnostic string }{
-		{"escape", "mariadb://user:" + password + "@localhost/db%zz?token=" + token, "invalid MariaDB URI format"},
-		{"port", "mariadb://user:" + password + "@localhost:invalid/db?token=" + token, "invalid MariaDB URI format"},
-		{"missing userinfo separator and host", "mariadb://user:" + password + "/db?token=" + token, "invalid MariaDB URI format"},
+		{"escape", "mariadb://user:" + password + "@localhost/db%zz?token=" + token, "invalid MariaDB URI format: failed to parse URL: invalid URL escape"},
+		{"port", "mariadb://user:" + password + "@localhost:invalid/db?token=" + token, "invalid MariaDB URI format: failed to parse URL: invalid port"},
+		{"missing userinfo separator and host", "mariadb://user:" + password + "/db?token=" + token, "invalid MariaDB URI format: failed to parse URL: invalid port"},
 		{"hostname", "mariadb://user:" + password + "@/db?token=" + token, "missing hostname in URI"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

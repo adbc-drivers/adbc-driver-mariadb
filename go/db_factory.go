@@ -19,9 +19,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
-	"net/url"
 	"strings"
 
+	"github.com/adbc-drivers/driverbase-go/driverbase"
 	"github.com/adbc-drivers/driverbase-go/sqlwrapper"
 	"github.com/apache/arrow-adbc/go/adbc"
 	mariadb "github.com/go-sql-driver/mysql"
@@ -133,9 +133,9 @@ func (f *MariaDBDBFactory) BuildMariaDBDSN(opts map[string]string) (string, erro
 //	mariadb://user:pass@host/db?charset=utf8mb4 → user:pass@tcp(host:3306)/db?charset=utf8mb4
 //	mariadb://user@(/path/to/socket.sock)/db → user@unix(/path/to/socket.sock)/db
 func (f *MariaDBDBFactory) parseToMariaDBDSN(mariadbURI, username, password string) (string, error) {
-	u, err := url.Parse(mariadbURI)
+	u, err := driverbase.SafeParseURL(mariadbURI)
 	if err != nil {
-		return "", fmt.Errorf("invalid MariaDB URI format")
+		return "", fmt.Errorf("invalid MariaDB URI format: %w", err)
 	}
 
 	cfg := mariadb.NewConfig()
